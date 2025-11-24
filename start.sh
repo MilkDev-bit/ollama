@@ -1,16 +1,23 @@
-#!/bin/sh
+#!/bin/bash
 
-# Iniciar el servidor de Ollama en segundo plano
+# Iniciar el servidor en segundo plano
 ollama serve &
 
-# Esperar a que el servidor arranque
-sleep 10
+# Guardar el PID del proceso
+pid=$!
 
-# Descargar modelo ligero para Railway
-echo "🔴 Descargando modelo tinydolphin..."
-ollama pull tinydolphin
+# Esperar a que el servidor esté listo (reintentos)
+echo "⏳ Esperando a que Ollama inicie..."
+while ! curl -s http://localhost:11434 > /dev/null; do
+    sleep 1
+done
 
-echo "🟢 Ollama listo con tinydolphin!"
+echo "🟢 Ollama iniciado. Verificando modelo llama3..."
 
-# Mantener el contenedor vivo
-tail -f /dev/null
+# Intentar descargar el modelo
+ollama pull llama3
+
+echo "✅ Modelo listo. Servidor operativo."
+
+# Esperar al proceso de ollama
+wait $pid
